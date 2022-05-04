@@ -1,0 +1,11 @@
+FROM openjdk:17-slim
+
+ENV GIT_BRANCH {{ git_branch }}
+ENV GIT_COMMIT {{ git_commit }}
+ENV BUILD_TIMESTAMP {{ build_timestamp }}
+
+WORKDIR /opt
+
+ADD build/distributions/chat-worker.tar .
+
+CMD [ "/opt/chat-worker/bin/chat-worker" ]
