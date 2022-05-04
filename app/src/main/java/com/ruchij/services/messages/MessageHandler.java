@@ -1,7 +1,7 @@
 package com.ruchij.services.messages;
 
-import com.ruchij.services.messages.models.OneToOne;
+import java.util.concurrent.CompletableFuture;
 
-public interface MessageHandler {
-    void handle(OneToOne oneToOne);
+public interface MessageHandler<T> {
+    CompletableFuture<Boolean> handle(T message);
 }
