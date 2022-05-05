@@ -20,7 +20,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        Config config = ConfigFactory.defaultApplication();
+        Config config = ConfigFactory.load();
         KafkaConfiguration kafkaConfiguration = KafkaConfiguration.fromConfig(config);
         ApiServiceConfiguration apiServiceConfiguration = ApiServiceConfiguration.fromConfig(config);
 

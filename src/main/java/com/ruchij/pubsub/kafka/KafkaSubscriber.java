@@ -34,36 +34,36 @@ public class KafkaSubscriber<A extends Message, B extends SpecificRecord> implem
 
     @Override
     public Stream<CommittableRecord<A>> subscribe(String groupId) {
-        try (KafkaConsumer<String, B> kafkaConsumer = new KafkaConsumer<>(consumerProperties(groupId))) {
-            kafkaConsumer.subscribe(List.of(kafkaTopic.topicName()));
+        KafkaConsumer<String, B> kafkaConsumer = new KafkaConsumer<>(consumerProperties(groupId));
+        kafkaConsumer.subscribe(List.of(kafkaTopic.topicName()));
 
-            return Stream.generate(() -> kafkaConsumer.poll(Duration.ofMillis(100)))
-                    .flatMap(consumerRecords -> StreamSupport.stream(consumerRecords.spliterator(), false))
-                    .map(consumerRecord ->
-                            new CommittableRecord<>(
-                                    kafkaTopic.fromSpecificRecord(consumerRecord.value()),
-                                    () -> {
-                                        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        return Stream.generate(() -> kafkaConsumer.poll(Duration.ofMillis(100)))
+                .flatMap(consumerRecords -> StreamSupport.stream(consumerRecords.spliterator(), false))
+                .map(consumerRecord ->
+                        new CommittableRecord<>(
+                                kafkaTopic.fromSpecificRecord(consumerRecord.value()),
+                                () -> {
+                                    CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
-                                        kafkaConsumer.commitAsync(
-                                                Map.of(
-                                                        new TopicPartition(consumerRecord.topic(), consumerRecord.partition()),
-                                                        new OffsetAndMetadata(consumerRecord.offset())
-                                                ),
-                                                (offsets, exception) -> {
-                                                    if (exception == null) {
-                                                        completableFuture.complete(null);
-                                                    } else {
-                                                        completableFuture.completeExceptionally(exception);
-                                                    }
+                                    kafkaConsumer.commitAsync(
+                                            Map.of(
+                                                    new TopicPartition(consumerRecord.topic(), consumerRecord.partition()),
+                                                    new OffsetAndMetadata(consumerRecord.offset())
+                                            ),
+                                            (offsets, exception) -> {
+                                                if (exception == null) {
+                                                    completableFuture.complete(null);
+                                                } else {
+                                                    completableFuture.completeExceptionally(exception);
                                                 }
-                                        );
+                                            }
+                                    );
 
-                                        return completableFuture;
-                                    }
-                            )
-                    );
-        }
+                                    return completableFuture;
+                                }
+                        )
+                )
+                .onClose(kafkaConsumer::close);
     }
 
 

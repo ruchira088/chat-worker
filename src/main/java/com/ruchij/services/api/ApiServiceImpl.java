@@ -23,7 +23,7 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public CompletableFuture<Boolean> deliver(OneToOne oneToOne) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(apiServiceConfiguration.serviceUrl())
+                .uri(apiServiceConfiguration.serviceUrl().resolve("/push"))
                 .timeout(Duration.ofSeconds(5))
                 .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(apiServiceConfiguration.authenticationToken()))
                 .POST(JsonBody.jsonBodyPublisher(oneToOne))
