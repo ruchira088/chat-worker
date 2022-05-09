@@ -15,10 +15,6 @@ import com.typesafe.config.ConfigFactory;
 import java.net.http.HttpClient;
 
 public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
-
     public static void main(String[] args) {
         Config config = ConfigFactory.load();
         KafkaConfiguration kafkaConfiguration = KafkaConfiguration.fromConfig(config);
@@ -31,13 +27,17 @@ public class App {
         ApiService apiService = new ApiServiceImpl(HttpClient.newHttpClient(), apiServiceConfiguration);
 
         KafkaSubscriber<OneToOne, OneToOneMessage> oneToOneKafkaSubscriber =
-                new KafkaSubscriber<>(KafkaTopic.ONE_TO_ONE, kafkaConfiguration);
+            new KafkaSubscriber<>(KafkaTopic.ONE_TO_ONE, kafkaConfiguration);
 
         OneToOneMessageHandler oneToOneMessageHandler = new OneToOneMessageHandler(apiService);
 
         ChatWorker<OneToOne, OneToOneMessage> oneToOneChatWorker =
-                new ChatWorker<>(oneToOneKafkaSubscriber, oneToOneMessageHandler);
+            new ChatWorker<>(oneToOneKafkaSubscriber, oneToOneMessageHandler);
 
         oneToOneChatWorker.run();
+    }
+
+    public String getGreeting() {
+        return "Hello World!";
     }
 }

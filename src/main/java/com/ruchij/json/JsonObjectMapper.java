@@ -5,6 +5,6 @@ import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public class JsonObjectMapper {
     public static final ObjectMapper objectMapper =
-            new ObjectMapper().registerModule(new JodaModule());
+        new ObjectMapper().registerModule(new JodaModule());
 
 }

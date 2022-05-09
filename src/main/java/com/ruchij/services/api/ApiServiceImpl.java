@@ -27,24 +27,24 @@ public class ApiServiceImpl implements ApiService {
     @Override
     public CompletableFuture<Boolean> deliver(OneToOne oneToOne) {
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(apiServiceConfiguration.serviceUrl().resolve("/push"))
-                .timeout(Duration.ofSeconds(5))
-                .version(HttpClient.Version.HTTP_1_1)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(apiServiceConfiguration.authenticationToken()))
-                .POST(JsonBody.jsonBodyPublisher(oneToOne))
-                .build();
+            .uri(apiServiceConfiguration.serviceUrl().resolve("/push"))
+            .timeout(Duration.ofSeconds(5))
+            .version(HttpClient.Version.HTTP_1_1)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(apiServiceConfiguration.authenticationToken()))
+            .POST(JsonBody.jsonBodyPublisher(oneToOne))
+            .build();
 
         logger.info("Sending message to PUSH messageId=%s".formatted(oneToOne.messageId()));
 
         return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.discarding())
-                .thenApply(response -> {
-                    logger.info("Response received for PUSH messageId=%s".formatted(oneToOne.messageId()));
+            .thenApply(response -> {
+                logger.info("Response received for PUSH messageId=%s".formatted(oneToOne.messageId()));
 
-                    return response.statusCode() < 300;
-                })
-                .exceptionally(throwable -> {
-                    logger.error("Failed to PUSH messageId=%s".formatted(oneToOne.messageId()), throwable);
-                    return false;
-                });
+                return response.statusCode() < 300;
+            })
+            .exceptionally(throwable -> {
+                logger.error("Failed to PUSH messageId=%s".formatted(oneToOne.messageId()), throwable);
+                return false;
+            });
     }
 }

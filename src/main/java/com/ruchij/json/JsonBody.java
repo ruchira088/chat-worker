@@ -18,14 +18,14 @@ public class JsonBody {
 
     public static <T> HttpResponse.BodyHandler<T> jsonBodyHandler(Class<T> clazz, ObjectMapper objectMapper) {
         return responseInfo -> BodySubscribers.mapping(
-                BodySubscribers.ofInputStream(),
-                inputStream -> {
-                    try {
-                        return objectMapper.readValue(inputStream, clazz);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+            BodySubscribers.ofInputStream(),
+            inputStream -> {
+                try {
+                    return objectMapper.readValue(inputStream, clazz);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
+            }
         );
     }
 

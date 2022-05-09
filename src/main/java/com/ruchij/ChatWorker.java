@@ -8,12 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChatWorker<A extends Message, B extends SpecificRecord> {
+    private static final String CONSUMER_GROUP = "chat-worker";
     private final Logger logger = LoggerFactory.getLogger(ChatWorker.class);
-
     private final KafkaSubscriber<A, B> kafkaSubscriber;
     private final MessageHandler<A> messageHandler;
-
-    private static final String CONSUMER_GROUP = "chat-worker";
 
     public ChatWorker(KafkaSubscriber<A, B> kafkaSubscriber, MessageHandler<A> messageHandler) {
         this.kafkaSubscriber = kafkaSubscriber;
@@ -22,14 +20,18 @@ public class ChatWorker<A extends Message, B extends SpecificRecord> {
 
     public void run() {
         this.kafkaSubscriber.subscribe(CONSUMER_GROUP)
-                .forEach(committableRecord ->
-                        messageHandler.handle(committableRecord.data())
-                                .thenAccept(pushed -> logger.info("Handled messageId=%s push=%s".formatted(committableRecord.data().messageId(), pushed)))
-                                .thenCompose(value -> committableRecord.commitData().get())
-                                .thenAccept(x -> logger.info("Committed messageId=%s".formatted(committableRecord.data().messageId())))
-                                .exceptionally(exception -> {
-                                    logger.error("Failed to handle messageId=%s".formatted(committableRecord.data().messageId()), exception);
-                                    return null;
-                                }));
+            .forEach(committableRecord ->
+                messageHandler.handle(committableRecord.data())
+                    .thenAccept(pushed -> {
+                        logger.info("Handled messageId=%s push=%s".formatted(committableRecord.data().messageId(), pushed));
+                        committableRecord.commitData().run();
+                        logger.info("Committed messageId=%s".formatted(committableRecord.data().messageId()));
+                    })
+                    .exceptionally(exception -> {
+                        logger.error("Failed to handle messageId=%s".formatted(committableRecord.data().messageId()), exception);
+                        return null;
+                    })
+                    .join()
+            );
     }
 }
