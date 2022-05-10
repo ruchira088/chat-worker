@@ -45,7 +45,7 @@ public class KafkaSubscriber<A extends Message, B extends SpecificRecord> implem
             .map(consumerRecord -> {
                     A message = kafkaTopic.fromSpecificRecord(consumerRecord.value());
 
-                    logger.info("Received message topic=%s messageId=%s".formatted(kafkaTopic.topicName(), message.messageId()));
+                    logger.info("Received content topic=%s messageId=%s".formatted(kafkaTopic.topicName(), message.messageId()));
 
                     return new CommittableRecord<>(
                         message,

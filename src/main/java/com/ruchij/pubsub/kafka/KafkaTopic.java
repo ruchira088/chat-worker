@@ -33,7 +33,7 @@ public interface KafkaTopic<A extends Message, B extends SpecificRecord> {
                 .setSenderId(oneToOne.senderId())
                 .setSentAt(Instant.ofEpochMilli(oneToOne.sentAt().getMillis()))
                 .setReceiverId(oneToOne.receiverId())
-                .setMessage(oneToOne.message())
+                .setMessage(oneToOne.content())
                 .build();
         }
     };
