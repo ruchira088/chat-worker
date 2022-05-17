@@ -3,7 +3,7 @@ package com.ruchij.pubsub.kafka;
 import com.ruchij.config.KafkaConfiguration;
 import com.ruchij.pubsub.Subscriber;
 import com.ruchij.pubsub.models.CommittableRecord;
-import com.ruchij.services.messages.models.Message;
+import com.ruchij.services.messages.models.IncomingMessage;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
@@ -23,7 +23,7 @@ import java.util.Properties;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class KafkaSubscriber<A extends Message, B extends SpecificRecord> implements Subscriber<A> {
+public class KafkaSubscriber<A extends IncomingMessage, B extends SpecificRecord> implements Subscriber<A> {
     private final KafkaConfiguration kafkaConfiguration;
 
     private final KafkaTopic<A, B> kafkaTopic;

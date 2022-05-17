@@ -1,6 +1,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 repositories {
@@ -29,8 +30,10 @@ dependencies {
     implementation 'joda-time:joda-time:2.10.14'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.13.2'
+    implementation 'org.mongodb:mongodb-driver-reactivestreams:4.6.0'
     implementation 'ch.qos.logback:logback-classic:1.2.11'
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.4.5'
 }
 
 application {
@@ -38,7 +41,10 @@ application {
     mainClass = 'com.ruchij.App'
 }
 
-tasks.named('test') {
-    // Use JUnit Platform for unit tests.
+test {
     useJUnitPlatform()
+
+    testLogging {
+        showStackTraces true
+    }
 }

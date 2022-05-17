@@ -36,8 +36,4 @@ public class App {
 
         oneToOneChatWorker.run();
     }
-
-    public String getGreeting() {
-        return "Hello World!";
-    }
 }

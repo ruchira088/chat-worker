@@ -1,14 +1,14 @@
 package com.ruchij.pubsub.kafka;
 
 import com.ruchij.avro.chat.OneToOneMessage;
-import com.ruchij.services.messages.models.Message;
+import com.ruchij.services.messages.models.IncomingMessage;
 import com.ruchij.services.messages.models.OneToOne;
 import org.apache.avro.specific.SpecificRecord;
 import org.joda.time.DateTime;
 
 import java.time.Instant;
 
-public interface KafkaTopic<A extends Message, B extends SpecificRecord> {
+public interface KafkaTopic<A extends IncomingMessage, B extends SpecificRecord> {
     KafkaTopic<OneToOne, OneToOneMessage> ONE_TO_ONE = new KafkaTopic<>() {
         @Override
         public String topicName() {

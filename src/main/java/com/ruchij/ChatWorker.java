@@ -2,12 +2,12 @@ package com.ruchij;
 
 import com.ruchij.pubsub.kafka.KafkaSubscriber;
 import com.ruchij.services.messages.MessageHandler;
-import com.ruchij.services.messages.models.Message;
+import com.ruchij.services.messages.models.IncomingMessage;
 import org.apache.avro.specific.SpecificRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChatWorker<A extends Message, B extends SpecificRecord> {
+public class ChatWorker<A extends IncomingMessage, B extends SpecificRecord> {
     private static final String CONSUMER_GROUP = "chat-worker";
     private final Logger logger = LoggerFactory.getLogger(ChatWorker.class);
     private final KafkaSubscriber<A, B> kafkaSubscriber;
