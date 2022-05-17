@@ -11,6 +11,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MongoMessageDaoTest extends AbstractMongoDbTest {
 
     @Test
-    void insertingAndReadingData() {
+    void insertingAndReadingData() throws Exception {
         MongoCollection<Person> collection = mongoDatabase().getCollection("person", Person.class);
 
         SingleResultSubscriber<InsertManyResult> resultSubscriber = new SingleResultSubscriber<>();
@@ -36,7 +37,7 @@ class MongoMessageDaoTest extends AbstractMongoDbTest {
                 return multipleResultSubscriber.toCompletableFuture();
             });
 
-        List<Person> personList = people.join();
+        List<Person> personList = people.get(10, TimeUnit.SECONDS);
 
         assertEquals(2, personList.size());
         assertTrue(personList.contains(new Person("John", 1)));
