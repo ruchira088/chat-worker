@@ -1,47 +1,69 @@
 package com.ruchij.daos.message;
 
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.reactivestreams.client.MongoCollection;
-import com.ruchij.reactive.MultipleResultSubscriber;
-import com.ruchij.reactive.SingleResultSubscriber;
+import com.ruchij.daos.message.models.Message;
+import com.ruchij.daos.message.models.MongoMessage;
 import com.ruchij.tests.AbstractMongoDbTest;
+import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MongoMessageDaoTest extends AbstractMongoDbTest {
 
     @Test
     void insertingAndReadingData() throws Exception {
-        MongoCollection<Person> collection = mongoDatabase().getCollection("person", Person.class);
+        DateTime dateTime = DateTime.now();
 
-        SingleResultSubscriber<InsertManyResult> resultSubscriber = new SingleResultSubscriber<>();
+        Message oneToOneMessage =
+            new Message(
+                "my-message-id",
+                "sender-id",
+                dateTime,
+                "my-id",
+                Optional.empty(),
+                "This is a test message",
+                Optional.of(dateTime),
+                Optional.of(dateTime)
+            );
 
-        collection.insertMany(List.of(new Person("John", 1), new Person("Mary", 1)))
-            .subscribe(resultSubscriber);
+        Message groupMessage =
+            new Message(
+                "my-group-message-id",
+                "group-sender-id",
+                dateTime,
+                "my-id",
+                Optional.of("my-group-id"),
+                "This is a group test message",
+                Optional.of(dateTime),
+                Optional.empty()
+            );
 
-        CompletableFuture<List<Person>> people = resultSubscriber.toCompletableFuture()
-            .thenCompose(insertManyResult -> {
-                MultipleResultSubscriber<Person> multipleResultSubscriber = new MultipleResultSubscriber<>(10);
+        MongoCollection<MongoMessage> collection =
+            mongoDatabase().getCollection("messages", MongoMessage.class);
 
-                collection.find(Filters.eq("age", 1)).subscribe(multipleResultSubscriber);
+        MongoMessageDao mongoMessageDao = new MongoMessageDao(collection);
 
-                return multipleResultSubscriber.toCompletableFuture();
-            });
+        List<Message> messages = mongoMessageDao.insert(oneToOneMessage)
+            .thenCompose(result -> mongoMessageDao.insert(groupMessage))
+            .thenCompose(result -> mongoMessageDao.findByUserId("my-id", 0, 10))
+            .get(5, TimeUnit.SECONDS);
 
-        List<Person> personList = people.get(10, TimeUnit.SECONDS);
+        assertEquals(messages, List.of(oneToOneMessage, groupMessage));
 
-        assertEquals(2, personList.size());
-        assertTrue(personList.contains(new Person("John", 1)));
-        assertTrue(personList.contains(new Person("Mary", 1)));
+        List<Message> senderResults = mongoMessageDao.findByUserId("sender-id", 0, 10).join();
+
+        assertEquals(senderResults, List.of(oneToOneMessage));
+
+        List<Message> emptyResults = mongoMessageDao.findByUserId("no-id", 0, 10).join();
+
+        assertEquals(emptyResults, List.of());
     }
 
 }

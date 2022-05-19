@@ -5,6 +5,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoDatabase;
+import com.ruchij.daos.mongo.codecs.DateTimeCodec;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -44,6 +45,7 @@ public abstract class AbstractMongoDbTest {
             new ConnectionString("mongodb://localhost:%s".formatted(mongoPort));
 
         CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
+            CodecRegistries.fromCodecs(new DateTimeCodec()),
             MongoClientSettings.getDefaultCodecRegistry(),
             CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build())
         );

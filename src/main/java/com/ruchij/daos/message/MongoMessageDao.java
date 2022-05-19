@@ -5,23 +5,25 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.ruchij.daos.message.models.Message;
+import com.ruchij.daos.message.models.MongoMessage;
 import com.ruchij.reactive.MultipleResultSubscriber;
 import com.ruchij.reactive.SingleResultSubscriber;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class MongoMessageDao implements MessageDao {
-    private final MongoCollection<Message> collection;
+    private final MongoCollection<MongoMessage> collection;
 
-    public MongoMessageDao(MongoCollection<Message> collection) {
+    public MongoMessageDao(MongoCollection<MongoMessage> collection) {
         this.collection = collection;
     }
 
     @Override
     public CompletableFuture<Integer> insert(Message message) {
         SingleResultSubscriber<InsertOneResult> singleResultSubscriber = new SingleResultSubscriber<>();
-        collection.insertOne(message).subscribe(singleResultSubscriber);
+        collection.insertOne(MongoMessage.fromMessage(message)).subscribe(singleResultSubscriber);
 
         return singleResultSubscriber.toCompletableFuture()
             .thenApply(maybeResult ->
@@ -31,15 +33,16 @@ public class MongoMessageDao implements MessageDao {
 
     @Override
     public CompletableFuture<List<Message>> findByUserId(String userId, int pageNumber, int pageSize) {
-        MultipleResultSubscriber<Message> multipleResultSubscriber = new MultipleResultSubscriber<>(pageSize);
+        MultipleResultSubscriber<MongoMessage> multipleResultSubscriber = new MultipleResultSubscriber<>(pageSize);
 
         collection.find(Filters.or(Filters.eq("senderId", userId), Filters.eq("receiverId", userId)))
-            .sort(Sorts.descending("sentAt"))
+            .sort(Sorts.descending("sentAt", "senderId", "receiverId", "messageId"))
             .skip(pageNumber * pageSize)
             .limit(pageSize)
             .subscribe(multipleResultSubscriber);
 
-        return multipleResultSubscriber.toCompletableFuture();
+        return multipleResultSubscriber.toCompletableFuture()
+            .thenApply(mongoMessages -> mongoMessages.stream().map(MongoMessage::toMessage).collect(Collectors.toList()));
     }
 
 }
