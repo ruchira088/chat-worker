@@ -1,11 +1,9 @@
 package com.ruchij.tests;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoClient;
-import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import com.ruchij.daos.mongo.codecs.DateTimeCodec;
+import com.ruchij.config.MongoConfiguration;
+import com.ruchij.daos.mongo.Mongo;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -14,9 +12,6 @@ import de.flapdoodle.embed.mongo.config.MongodConfig;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -41,23 +36,11 @@ public abstract class AbstractMongoDbTest {
         mongodExecutable = mongodStarter.prepare(mongodConfig);
         mongodProcess = mongodExecutable.start();
 
-        ConnectionString connectionString =
-            new ConnectionString("mongodb://localhost:%s".formatted(mongoPort));
+        MongoConfiguration mongoConfiguration =
+            new MongoConfiguration("mongodb://localhost:%s".formatted(mongoPort), "chat-worker");
 
-        CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
-            CodecRegistries.fromCodecs(new DateTimeCodec()),
-            MongoClientSettings.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build())
-        );
-
-        MongoClientSettings clientSettings =
-            MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
-                .codecRegistry(codecRegistry)
-                .build();
-
-        mongoClient = MongoClients.create(clientSettings);
-        mongoDatabase = mongoClient.getDatabase("chat-worker");
+        mongoClient = Mongo.createClient(mongoConfiguration);
+        mongoDatabase = mongoClient.getDatabase(mongoConfiguration.database());
     }
 
     protected MongoDatabase mongoDatabase() {

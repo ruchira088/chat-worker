@@ -4,6 +4,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 import com.ruchij.daos.message.models.Message;
 import com.ruchij.daos.message.models.MongoMessage;
 import com.ruchij.reactive.MultipleResultSubscriber;
@@ -14,10 +15,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class MongoMessageDao implements MessageDao {
+    private static final String COLLECTION_NAME = "messages";
     private final MongoCollection<MongoMessage> collection;
 
-    public MongoMessageDao(MongoCollection<MongoMessage> collection) {
-        this.collection = collection;
+    public MongoMessageDao(MongoDatabase mongoDatabase) {
+        this.collection = mongoDatabase.getCollection(COLLECTION_NAME, MongoMessage.class);
     }
 
     @Override

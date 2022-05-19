@@ -45,10 +45,7 @@ class MongoMessageDaoTest extends AbstractMongoDbTest {
                 Optional.empty()
             );
 
-        MongoCollection<MongoMessage> collection =
-            mongoDatabase().getCollection("messages", MongoMessage.class);
-
-        MongoMessageDao mongoMessageDao = new MongoMessageDao(collection);
+        MongoMessageDao mongoMessageDao = new MongoMessageDao(mongoDatabase());
 
         List<Message> messages = mongoMessageDao.insert(oneToOneMessage)
             .thenCompose(result -> mongoMessageDao.insert(groupMessage))
